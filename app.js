@@ -1,3 +1,6 @@
+const { config } = require("./utils/dotenv.js");
+config();
+
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
@@ -10,7 +13,7 @@ const ExpressError = require("./utils/expresserror.js");
 const { listingSchema, reviewSchema } = require("./schema.js");
 const Review = require("./models/review.js");
 
-const mongo_url = "mongodb://127.0.0.1:27017/wanderlust";
+const mongo_url = process.env.mongo_url || "mongodb://127.0.0.1:27017/wanderlust";
 
 async function main() {
     await mongoose.connect(mongo_url);
@@ -97,6 +100,9 @@ app.put("/listings/:id", validateListing, wrapAsync(async (req, res) => {
 // Review route - post review
 app.post("/listings/:id/reviews", validateReview, wrapAsync(async (req, res) => {
     let listing = await Listing.findById(req.params.id);
+    if (!listing){
+        throw new ExpressError(404, "Listing not found");
+    }
     let newReview = new Review(req.body.review);
     listing.reviews.push(newReview);
 
